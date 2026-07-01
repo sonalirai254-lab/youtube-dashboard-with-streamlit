@@ -14,7 +14,183 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      channel_metrics: {
+        Row: {
+          channel_id: string
+          date: string
+          id: string
+          subscribers: number | null
+          views: number | null
+          watch_time_minutes: number | null
+        }
+        Insert: {
+          channel_id: string
+          date: string
+          id?: string
+          subscribers?: number | null
+          views?: number | null
+          watch_time_minutes?: number | null
+        }
+        Update: {
+          channel_id?: string
+          date?: string
+          id?: string
+          subscribers?: number | null
+          views?: number | null
+          watch_time_minutes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_metrics_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          country: string | null
+          created_at: string
+          description: string | null
+          handle: string | null
+          id: string
+          name: string
+          subscribers: number | null
+          user_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          handle?: string | null
+          id?: string
+          name: string
+          subscribers?: number | null
+          user_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          handle?: string | null
+          id?: string
+          name?: string
+          subscribers?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      keyword_metrics: {
+        Row: {
+          channel_id: string
+          clicks: number | null
+          ctr: number | null
+          id: string
+          impressions: number | null
+          term: string
+        }
+        Insert: {
+          channel_id: string
+          clicks?: number | null
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          term: string
+        }
+        Update: {
+          channel_id?: string
+          clicks?: number | null
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          term?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keyword_metrics_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          avg_view_duration: number | null
+          category: string | null
+          channel_id: string
+          comments: number | null
+          ctr: number | null
+          duration_seconds: number | null
+          external_id: string | null
+          id: string
+          likes: number | null
+          published_at: string | null
+          title: string
+          views: number | null
+        }
+        Insert: {
+          avg_view_duration?: number | null
+          category?: string | null
+          channel_id: string
+          comments?: number | null
+          ctr?: number | null
+          duration_seconds?: number | null
+          external_id?: string | null
+          id?: string
+          likes?: number | null
+          published_at?: string | null
+          title: string
+          views?: number | null
+        }
+        Update: {
+          avg_view_duration?: number | null
+          category?: string | null
+          channel_id?: string
+          comments?: number | null
+          ctr?: number | null
+          duration_seconds?: number | null
+          external_id?: string | null
+          id?: string
+          likes?: number | null
+          published_at?: string | null
+          title?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
