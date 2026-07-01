@@ -1,0 +1,41 @@
+/* Crixsoft premium dashboard theme */
+:root {
+  --grad-a: #6366f1;
+  --grad-b: #ec4899;
+  --grad-c: #f59e0b;
+}
+.main .block-container { padding-top: 1.2rem; max-width: 1400px; }
+h1, h2, h3 { font-family: "Inter", "Segoe UI", sans-serif; letter-spacing: -0.02em; }
+
+.crix-hero {
+  background: linear-gradient(120deg, var(--grad-a), var(--grad-b) 60%, var(--grad-c));
+  color: white; padding: 1.5rem 1.75rem; border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(99,102,241,.25); margin-bottom: 1.25rem;
+}
+.crix-hero h1 { color: white; margin: 0; font-size: 1.9rem; font-weight: 700; }
+.crix-hero p  { color: rgba(255,255,255,.85); margin: .35rem 0 0; }
+
+.kpi-card {
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 1.1rem 1.2rem; border-radius: 18px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.15); }
+.kpi-label { font-size:.78rem; text-transform: uppercase; letter-spacing:.08em; opacity:.7; }
+.kpi-value { font-size: 1.9rem; font-weight: 700; margin-top: .2rem; }
+.kpi-delta { font-size:.85rem; margin-top:.2rem; opacity:.8; }
+
+section[data-testid="stSidebar"] {
+  background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+}
+section[data-testid="stSidebar"] * { color: #e2e8f0 !important; }
+
+.stTabs [data-baseweb="tab-list"] { gap: .4rem; }
+.stTabs [data-baseweb="tab"] { border-radius: 12px; padding: .5rem 1rem; }
+.stTabs [aria-selected="true"] {
+  background: linear-gradient(120deg, var(--grad-a), var(--grad-b));
+  color: white !important;
+}

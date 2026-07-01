@@ -9,38 +9,152 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCompareRouteImport } from './routes/_authenticated/compare'
+import { Route as AuthenticatedCChannelIdVideosRouteImport } from './routes/_authenticated/c.$channelId.videos'
+import { Route as AuthenticatedCChannelIdOverviewRouteImport } from './routes/_authenticated/c.$channelId.overview'
+import { Route as AuthenticatedCChannelIdKeywordsRouteImport } from './routes/_authenticated/c.$channelId.keywords'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedUploadRoute = AuthenticatedUploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCompareRoute = AuthenticatedCompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCChannelIdVideosRoute =
+  AuthenticatedCChannelIdVideosRouteImport.update({
+    id: '/c/$channelId/videos',
+    path: '/c/$channelId/videos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCChannelIdOverviewRoute =
+  AuthenticatedCChannelIdOverviewRouteImport.update({
+    id: '/c/$channelId/overview',
+    path: '/c/$channelId/overview',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCChannelIdKeywordsRoute =
+  AuthenticatedCChannelIdKeywordsRouteImport.update({
+    id: '/c/$channelId/keywords',
+    path: '/c/$channelId/keywords',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/compare': typeof AuthenticatedCompareRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/upload': typeof AuthenticatedUploadRoute
+  '/c/$channelId/keywords': typeof AuthenticatedCChannelIdKeywordsRoute
+  '/c/$channelId/overview': typeof AuthenticatedCChannelIdOverviewRoute
+  '/c/$channelId/videos': typeof AuthenticatedCChannelIdVideosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/compare': typeof AuthenticatedCompareRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/upload': typeof AuthenticatedUploadRoute
+  '/c/$channelId/keywords': typeof AuthenticatedCChannelIdKeywordsRoute
+  '/c/$channelId/overview': typeof AuthenticatedCChannelIdOverviewRoute
+  '/c/$channelId/videos': typeof AuthenticatedCChannelIdVideosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/compare': typeof AuthenticatedCompareRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/upload': typeof AuthenticatedUploadRoute
+  '/_authenticated/c/$channelId/keywords': typeof AuthenticatedCChannelIdKeywordsRoute
+  '/_authenticated/c/$channelId/overview': typeof AuthenticatedCChannelIdOverviewRoute
+  '/_authenticated/c/$channelId/videos': typeof AuthenticatedCChannelIdVideosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/compare'
+    | '/dashboard'
+    | '/upload'
+    | '/c/$channelId/keywords'
+    | '/c/$channelId/overview'
+    | '/c/$channelId/videos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/compare'
+    | '/dashboard'
+    | '/upload'
+    | '/c/$channelId/keywords'
+    | '/c/$channelId/overview'
+    | '/c/$channelId/videos'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/compare'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/upload'
+    | '/_authenticated/c/$channelId/keywords'
+    | '/_authenticated/c/$channelId/overview'
+    | '/_authenticated/c/$channelId/videos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +162,77 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/upload': {
+      id: '/_authenticated/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof AuthenticatedUploadRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/compare': {
+      id: '/_authenticated/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof AuthenticatedCompareRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/c/$channelId/videos': {
+      id: '/_authenticated/c/$channelId/videos'
+      path: '/c/$channelId/videos'
+      fullPath: '/c/$channelId/videos'
+      preLoaderRoute: typeof AuthenticatedCChannelIdVideosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/c/$channelId/overview': {
+      id: '/_authenticated/c/$channelId/overview'
+      path: '/c/$channelId/overview'
+      fullPath: '/c/$channelId/overview'
+      preLoaderRoute: typeof AuthenticatedCChannelIdOverviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/c/$channelId/keywords': {
+      id: '/_authenticated/c/$channelId/keywords'
+      path: '/c/$channelId/keywords'
+      fullPath: '/c/$channelId/keywords'
+      preLoaderRoute: typeof AuthenticatedCChannelIdKeywordsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCompareRoute: typeof AuthenticatedCompareRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedUploadRoute: typeof AuthenticatedUploadRoute
+  AuthenticatedCChannelIdKeywordsRoute: typeof AuthenticatedCChannelIdKeywordsRoute
+  AuthenticatedCChannelIdOverviewRoute: typeof AuthenticatedCChannelIdOverviewRoute
+  AuthenticatedCChannelIdVideosRoute: typeof AuthenticatedCChannelIdVideosRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCompareRoute: AuthenticatedCompareRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedUploadRoute: AuthenticatedUploadRoute,
+  AuthenticatedCChannelIdKeywordsRoute: AuthenticatedCChannelIdKeywordsRoute,
+  AuthenticatedCChannelIdOverviewRoute: AuthenticatedCChannelIdOverviewRoute,
+  AuthenticatedCChannelIdVideosRoute: AuthenticatedCChannelIdVideosRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
