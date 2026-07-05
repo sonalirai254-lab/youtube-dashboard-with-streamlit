@@ -262,86 +262,168 @@ elif page == "🎥 Channel Analysis":
 
 
 elif page == "📼 Video Analysis":
+    st.subheader("🔍 Search Videos")
+
+    search_video = st.text_input("Search video by title")
+
+    video_data = filtered.copy()
+
+    if search_video:
+        video_data = video_data[
+            video_data["title"].astype(str).str.contains(search_video, case=False, na=False)
+        ]
+
+    st.subheader("🏆 Top 10 Videos by Views")
+
+    top10 = video_data.sort_values("views", ascending=False).head(10)
+
+    st.dataframe(
+        top10[["title", "published_at", "views", "likes", "comments", "engagement_rate"]],
+        use_container_width=True,
+    )
+
     tabs = st.tabs(["Most Viewed", "Most Liked", "Most Commented", "Recent", "Highest Engagement"])
 
     with tabs[0]:
-        st.plotly_chart(bar_top_videos(filtered, "views"), use_container_width=True)
+        st.plotly_chart(bar_top_videos(video_data, "views"), use_container_width=True)
 
     with tabs[1]:
-        st.plotly_chart(bar_top_videos(filtered, "likes"), use_container_width=True)
+        st.plotly_chart(bar_top_videos(video_data, "likes"), use_container_width=True)
 
     with tabs[2]:
-        st.plotly_chart(bar_top_videos(filtered, "comments"), use_container_width=True)
+        st.plotly_chart(bar_top_videos(video_data, "comments"), use_container_width=True)
 
     with tabs[3]:
         st.dataframe(
-            filtered.sort_values("published_at", ascending=False)[
+            video_data.sort_values("published_at", ascending=False)[
                 ["title", "published_at", "views", "likes", "comments"]
             ].head(20),
             use_container_width=True,
         )
 
     with tabs[4]:
-        st.plotly_chart(bar_top_videos(filtered, "engagement_rate"), use_container_width=True)
+        st.plotly_chart(bar_top_videos(video_data, "engagement_rate"), use_container_width=True)
 
     a, b = st.columns(2)
 
     with a:
-        st.plotly_chart(scatter_views_engagement(filtered), use_container_width=True)
+        st.plotly_chart(scatter_views_engagement(video_data), use_container_width=True)
 
     with b:
-        st.plotly_chart(histogram_views(filtered), use_container_width=True)
+        st.plotly_chart(histogram_views(video_data), use_container_width=True)
 
-    st.plotly_chart(treemap_categories(filtered), use_container_width=True)
-    st.plotly_chart(line_likes_trend(filtered), use_container_width=True)
-
-
+    st.plotly_chart(treemap_categories(video_data), use_container_width=True)
+    st.plotly_chart(line_likes_trend(video_data), use_container_width=True)
 elif page == "💡 Insights":
-    ins = generate_insights(filtered)
+    st.subheader("🤖 AI-Style Performance Insights")
 
-    if not ins:
+    if filtered.empty:
         st.info("No data to analyze — adjust filters.")
     else:
-        c = st.columns(2)
+        best_video = filtered.sort_values("views", ascending=False).iloc[0]
+        worst_video = filtered.sort_values("views", ascending=True).iloc[0]
+        most_liked = filtered.sort_values("likes", ascending=False).iloc[0]
+        most_commented = filtered.sort_values("comments", ascending=False).iloc[0]
 
-        with c[0]:
-            kpi("Best Video", safe_text(ins["best_video"]["title"])[:40], f"{ins['best_video']['views']:,} views")
-            kpi("Worst Video", safe_text(ins["worst_video"]["title"])[:40], f"{ins['worst_video']['views']:,} views")
+        avg_views = int(filtered["views"].mean())
+        avg_likes = int(filtered["likes"].mean())
+        avg_comments = int(filtered["comments"].mean())
+        avg_engagement = float(filtered["engagement_rate"].mean())
 
-        with c[1]:
-            kpi("Avg Engagement", f"{ins['avg_engagement']}%")
-            kpi("Most Active Month", safe_text(ins.get("most_active_month"), "—"))
+        health_score = min(100, int((avg_engagement * 10) + 50))
 
-        st.subheader("Growth Recommendations")
+        if health_score >= 80:
+            status = "🟢 Excellent"
+        elif health_score >= 60:
+            status = "🟡 Good"
+        else:
+            status = "🔴 Needs Improvement"
 
-        for tip in ins["recommendations"]:
-            st.markdown(f"- {tip}")
+        c1, c2, c3 = st.columns(3)
 
+        with c1:
+            kpi("Best Video", safe_text(best_video["title"])[:35], f"{int(best_video['views']):,} views")
+            kpi("Most Liked", safe_text(most_liked["title"])[:35], f"{int(most_liked['likes']):,} likes")
 
-st.divider()
+        with c2:
+            kpi("Lowest Views", safe_text(worst_video["title"])[:35], f"{int(worst_video['views']):,} views")
+            kpi("Most Commented", safe_text(most_commented["title"])[:35], f"{int(most_commented['comments']):,} comments")
 
-c1, c2 = st.columns(2)
+        with c3:
+            kpi("Avg Views", f"{avg_views:,}")
+            kpi("Avg Engagement", f"{avg_engagement:.2f}%")
 
-with c1:
-    st.download_button(
-        "⬇️ Download filtered CSV",
-        filtered.to_csv(index=False).encode("utf-8"),
-        file_name="videos_filtered.csv",
-        mime="text/csv",
-    )
+        st.divider()
 
-with c2:
-    try:
-        pdf_bytes = build_pdf(channel, filtered, generate_insights(filtered))
+        st.subheader("📊 Channel Health Score")
+        st.metric("Performance Score", f"{health_score}/100", status)
+        st.progress(health_score / 100)
 
-        st.download_button(
-            "📄 Download PDF report",
-            pdf_bytes,
-            file_name="youtube_report.pdf",
-            mime="application/pdf",
-        )
+        st.divider()
 
-    except Exception as exc:
-        st.caption(f"PDF export unavailable: {exc}")
+        st.subheader("📅 Best Upload Timing")
 
-st.caption("Built with ❤ by Crixsoft · YouTube Data API v3 · Streamlit + Plotly")
+        day_perf = filtered.groupby("weekday")["views"].mean().sort_values(ascending=False)
+        hour_perf = filtered.groupby("hour")["views"].mean().sort_values(ascending=False)
+
+        best_day = day_perf.index[0] if not day_perf.empty else "N/A"
+        best_hour = int(hour_perf.index[0]) if not hour_perf.empty else 0
+
+        t1, t2 = st.columns(2)
+
+        with t1:
+            st.metric("Best Upload Day", best_day)
+
+        with t2:
+            st.metric("Best Upload Hour", f"{best_hour}:00")
+
+        st.divider()
+
+        st.subheader("📈 Growth Prediction")
+
+        monthly_views = filtered.groupby("month")["views"].sum().sort_index()
+
+        if len(monthly_views) >= 2:
+            last_month = monthly_views.iloc[-1]
+            prev_month = monthly_views.iloc[-2]
+
+            growth = ((last_month - prev_month) / max(prev_month, 1)) * 100
+
+            st.metric(
+                "Last Month Growth",
+                f"{growth:.2f}%",
+                "Positive growth" if growth >= 0 else "Negative growth",
+            )
+
+            predicted_views = int(last_month * (1 + growth / 100))
+            st.metric("Expected Next Month Views", f"{predicted_views:,}")
+        else:
+            st.info("Upload data from at least two months is needed for growth prediction.")
+
+        st.divider()
+
+        st.subheader("✅ Smart Recommendations")
+
+        recommendations = []
+
+        if avg_engagement < 5:
+            recommendations.append("Improve thumbnails and titles to increase engagement rate.")
+        else:
+            recommendations.append("Engagement is healthy. Continue creating similar content.")
+
+        if avg_views < 1000:
+            recommendations.append("Focus on SEO keywords, attractive titles, and consistent posting.")
+        else:
+            recommendations.append("Views are performing well. Scale your best-performing content topics.")
+
+        if not day_perf.empty:
+            recommendations.append(f"Upload more videos on {best_day}, because average views are higher on this day.")
+
+        if not hour_perf.empty:
+            recommendations.append(f"Try uploading around {best_hour}:00 for better reach.")
+
+        if int(best_video["views"]) > avg_views * 2:
+            recommendations.append("Create more content similar to your best-performing video.")
+
+        for rec in recommendations:
+            st.markdown(f"- {rec}")
