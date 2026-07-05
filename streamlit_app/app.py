@@ -46,6 +46,34 @@ def safe_image(value):
     return img if img.strip().lower() not in ["", "nan", "none"] else ""
 
 
+def prepare_uploaded_csv(df: pd.DataFrame) -> pd.DataFrame:
+    df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+
+    required_cols = {
+        "title": "Uploaded Video",
+        "published_at": datetime.today(),
+        "views": 0,
+        "likes": 0,
+        "comments": 0,
+        "category": "Uploaded CSV",
+    }
+
+    for col, default in required_cols.items():
+        if col not in df.columns:
+            df[col] = default
+
+    df["published_at"] = pd.to_datetime(df["published_at"], errors="coerce")
+    df["published_at"] = df["published_at"].fillna(pd.Timestamp.today())
+
+    for col in ["views", "likes", "comments"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+
+    df["title"] = df["title"].astype(str)
+    df["category"] = df["category"].astype(str)
+
+    return df
+
+
 @st.cache_data(show_spinner="Fetching YouTube data…", ttl=1800)
 def load_from_api(api_key: str, query: str, max_videos: int) -> tuple[dict, pd.DataFrame]:
     channel_id = resolve_channel_id(api_key, query)
@@ -70,9 +98,14 @@ with st.sidebar:
     theme = st.radio("Theme", ["🌙 Dark", "☀️ Light"], horizontal=True)
 
     st.divider()
-    source = st.radio("Data source", ["📁 Sample dataset", "🔑 YouTube API v3"])
+    source = st.radio("Data source", ["📁 Sample dataset", "📤 Upload CSV", "🔑 YouTube API v3"])
 
+    uploaded_csv = None
     api_key, query, max_videos = None, None, 100
+
+    if source == "📤 Upload CSV":
+        uploaded_csv = st.file_uploader("Upload YouTube CSV", type=["csv"])
+        st.caption("Required columns: title, published_at, views, likes, comments")
 
     if source.endswith("API v3"):
         api_key = st.text_input("API key", type="password", value=os.getenv("YOUTUBE_API_KEY", ""))
@@ -86,13 +119,28 @@ with st.sidebar:
 try:
     if source.endswith("API v3") and api_key and query:
         channel, videos = load_from_api(api_key, query, max_videos)
+
+    elif source == "📤 Upload CSV" and uploaded_csv is not None:
+        channel = load_sample_channel()
+        channel["title"] = "Uploaded YouTube CSV Analysis"
+        channel["description"] = "Analytics generated from uploaded CSV file."
+        videos = prepare_uploaded_csv(pd.read_csv(uploaded_csv))
+        st.success("CSV uploaded successfully.")
+
     else:
         channel, videos = load_sample()
+
 except Exception as exc:
     st.error(f"Could not load data: {exc}. Falling back to sample dataset.")
     channel, videos = load_sample()
 
 videos = with_engagement(videos)
+videos["published_at"] = pd.to_datetime(videos["published_at"], errors="coerce")
+videos["published_at"] = videos["published_at"].fillna(pd.Timestamp.today())
+
+videos["month"] = videos["published_at"].dt.to_period("M").astype(str)
+videos["weekday"] = videos["published_at"].dt.day_name()
+videos["hour"] = videos["published_at"].dt.hour
 
 st.markdown(
     f"""
@@ -103,7 +151,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 with st.expander("🔍 Filters", expanded=False):
     c1, c2, c3, c4 = st.columns(4)
