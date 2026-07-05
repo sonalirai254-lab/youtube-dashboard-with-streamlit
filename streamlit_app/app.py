@@ -112,10 +112,18 @@ with st.sidebar:
         query = st.text_input("Channel handle / ID / name", value="@MrBeast")
         max_videos = st.slider("Max videos", 25, 500, 100, step=25)
 
+    
     st.divider()
-    page = st.radio("Navigate", ["📊 Dashboard", "🎥 Channel Analysis", "📼 Video Analysis", "💡 Insights"])
-
-
+    page = st.radio(
+        "Navigate",
+        [
+            "📊 Dashboard",
+            "🎥 Channel Analysis",
+            "📼 Video Analysis",
+            "💡 Insights",
+            "🤖 AI Assistant",
+        ],
+    )
 try:
     if source.endswith("API v3") and api_key and query:
         channel, videos = load_from_api(api_key, query, max_videos)
@@ -427,3 +435,120 @@ elif page == "💡 Insights":
 
         for rec in recommendations:
             st.markdown(f"- {rec}")
+
+elif page == "🤖 AI Assistant":
+
+    st.title("🤖 AI Assistant")
+    st.write("Ask questions about your YouTube data.")
+
+    question = st.text_input("Ask a question", placeholder="summarize my channel / top 5 videos / growth prediction / report")
+
+    if question:
+        q = question.lower().strip()
+
+        if "summarize" in q or "summary" in q:
+            st.subheader("📊 Channel Summary")
+            st.write(f"Total Videos: {len(filtered)}")
+            st.write(f"Total Views: {int(filtered['views'].sum()):,}")
+            st.write(f"Average Views: {int(filtered['views'].mean()):,}")
+            st.write(f"Average Likes: {int(filtered['likes'].mean()):,}")
+            st.write(f"Average Engagement: {filtered['engagement_rate'].mean():.2f}%")
+
+        elif "top 5" in q or "top videos" in q:
+            st.subheader("🏆 Top 5 Videos")
+            top5 = filtered.sort_values("views", ascending=False).head(5)
+            st.dataframe(
+                top5[["title", "views", "likes", "comments", "engagement_rate"]],
+                use_container_width=True,
+            )
+
+        elif "growth" in q or "prediction" in q:
+            st.subheader("📈 Growth Prediction")
+            monthly_views = filtered.groupby("month")["views"].sum().sort_index()
+
+            if len(monthly_views) >= 2:
+                last_month = monthly_views.iloc[-1]
+                prev_month = monthly_views.iloc[-2]
+                growth = ((last_month - prev_month) / max(prev_month, 1)) * 100
+                predicted = int(last_month * (1 + growth / 100))
+
+                st.metric("Last Month Growth", f"{growth:.2f}%")
+                st.metric("Expected Next Month Views", f"{predicted:,}")
+            else:
+                st.info("At least two months of data required.")
+
+        elif "report" in q:
+            st.subheader("📄 AI Generated Report")
+            best = filtered.sort_values("views", ascending=False).iloc[0]
+            avg_eng = filtered["engagement_rate"].mean()
+            best_day = filtered.groupby("weekday")["views"].mean().sort_values(ascending=False).index[0]
+
+            st.markdown(f"""
+### YouTube Performance Report
+
+Your channel has **{len(filtered)} videos** with a total of **{int(filtered['views'].sum()):,} views**.
+
+The best performing video is **{best['title']}** with **{int(best['views']):,} views**.
+
+Average engagement rate is **{avg_eng:.2f}%**.
+
+Best upload day is **{best_day}**.
+
+### Recommendations
+- Create more videos similar to your best-performing content.
+- Upload more frequently on **{best_day}**.
+- Improve thumbnails and titles for better click-through rate.
+- Focus on categories with higher engagement.
+""")
+
+        elif "performance score" in q or "score" in q:
+            avg_eng = filtered["engagement_rate"].mean()
+            avg_views = filtered["views"].mean()
+            score = min(100, int((avg_eng * 8) + (avg_views / max(filtered["views"].max(), 1)) * 40))
+            st.metric("📊 AI Performance Score", f"{score}/100")
+            st.progress(score / 100)
+
+        elif "viral" in q:
+            viral = filtered.copy()
+            viral["viral_score"] = (
+                viral["views"] * 0.5 +
+                viral["likes"] * 0.3 +
+                viral["comments"] * 0.2 +
+                viral["engagement_rate"] * 100
+            )
+            top = viral.sort_values("viral_score", ascending=False).iloc[0]
+            st.success(f"🎯 Viral Prediction\n\nMost likely viral video: **{top['title']}**\n\nScore: {int(top['viral_score']):,}")
+
+        elif "best time" in q or "upload time" in q:
+            best_day = filtered.groupby("weekday")["views"].mean().sort_values(ascending=False).index[0]
+            best_hour = int(filtered.groupby("hour")["views"].mean().sort_values(ascending=False).index[0])
+            st.success(f"🔥 Best Upload Time\n\nDay: **{best_day}**\n\nTime: **{best_hour}:00**")
+
+        elif "export report" in q or "download report" in q:
+            best = filtered.sort_values("views", ascending=False).iloc[0]
+            report_text = f"""
+AI YouTube Analytics Report
+
+Total Videos: {len(filtered)}
+Total Views: {int(filtered['views'].sum()):,}
+Average Views: {int(filtered['views'].mean()):,}
+Average Engagement: {filtered['engagement_rate'].mean():.2f}%
+
+Best Video:
+{best['title']} - {int(best['views']):,} views
+
+Recommendations:
+- Improve thumbnails and titles.
+- Upload consistently.
+- Create more content similar to top-performing videos.
+- Post during best-performing upload time.
+"""
+            st.download_button(
+                "📥 Download AI Report",
+                report_text.encode("utf-8"),
+                file_name="ai_youtube_report.txt",
+                mime="text/plain",
+            )
+
+        else:
+            st.warning("Try: summarize my channel, top 5 videos, growth prediction, report, performance score, viral, best upload time, export report")
