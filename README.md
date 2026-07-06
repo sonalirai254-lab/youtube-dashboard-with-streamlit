@@ -73,7 +73,7 @@ streamlit run streamlit_app/app.py
 
 ## 👩‍💻 Author
 
-**Sonali Rai**
+**Sonali Ray**
 
 GitHub: https://github.com/sonalirai254-lab
 
